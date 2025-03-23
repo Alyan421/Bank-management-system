@@ -2,6 +2,7 @@
 #include<string>
 #include<fstream>
 
+
 using namespace std;
 
 
@@ -37,12 +38,12 @@ bool checkcontact(string contact) {
 }
 
 template<class T, class U>
-void transfer(T& a, U& b) {
+void transfer(T* a, U* b) {
     double balance;
     cout << "How much money do you want to transfer: ";
     cin >> balance;
-    if (a.withdrawal(balance)) {
-        b.deposit(balance);
+    if (a->withdrawal(balance)) {
+        b->deposit(balance);
     }
 }
 
@@ -130,7 +131,6 @@ protected:
     float returnrate;
     double amount;//invested amount
     int year;
-    // friend bool transfer(T &a,T &b,double balance);
 public:
     static int invaccounts;
     Investment() {
@@ -195,7 +195,6 @@ protected:
     double amount;//loan amount
     double propertyvalue;
     int year;
-    // friend bool transfer(T &a,T &b,double balance);
 public:
     static int numofloanaccount;
     Loansystems(string username, string password, string email, string contact, double propertyvalue, double loanamount) :Account(username, password, email, contact), propertyvalue(propertyvalue), amount(loanamount) { numofloanaccount++; }
@@ -270,7 +269,6 @@ protected:
     float rateperannum;
 
     float zakaat;
-    // friend bool transfer(T &a,T &b,double balance);
 public:
     static int numofsavingaccount;
     Saving() {
@@ -326,7 +324,6 @@ class Current : virtual public Account {
 protected:
     double amount;
 
-    // friend bool transfer(T &a,T &b,double balance);
 public:
     static int numofcurrentaccount;
     Current() {}
@@ -373,7 +370,6 @@ protected:
     Loansystems* loanaccounts = new Loansystems[25];
     Saving* savaccounts = new Saving[25];
     Current* currentaccounts = new Current[25];
-    // string acctype[400];
 
     bool flag;
     int opt, year;
@@ -462,12 +458,12 @@ protected:
                 a.deposit(amount);
                 break;
             case 5:
-                cout << "Accout typr to which you want to transfer: " << endl
+                cout << "Accout type to which you want to transfer: " << endl
                     << "1.Saving" << endl
                     << "2.Current" << endl;
                 cin >> opt1;
                 if (opt1 == 1) {
-                    transfer<Investment, Saving>(a, checkaccnumsav());
+                    transfer<Investment, Saving>(&a, &checkaccnumsav());
                 }
 
                 //For fund transfers
@@ -632,61 +628,6 @@ public:
         flag = 0;
         string username, nme;
         username = name;
-        //         while(1){
-        //             for(int i=0;i<Investment::invaccounts;i++){
-        //                 if(investmentaccounts[i].getusername()==username){
-        //                 flag = 1;
-        //                 break;
-        //                 }   
-        //             }
-        //             if(flag==0){
-        //
-        //             for(int i=0;i<Loansystems::numofloanaccount;i++){
-        //                 if(loanaccounts[i].getusername()==username){
-        //                 flag = 1;
-        //                 break;
-        //                 }   
-        //             }
-        //             if(flag==0){
-        //              for(int i=0;i<Saving::numofsavingaccount;i++){
-        //                 if(savaccounts[i].getusername()==username){
-        //                 flag = 1;
-        //                 break;
-        //                 }   
-        //             }
-        //             if(flag==0){
-        //             	for(int i=0;i<Current::numofcurrentaccount;i++){
-        //                 if(currentaccounts[i].getusername()==username){
-        //                 flag = 1;
-        //                 break;
-        //                 }   
-        //             }
-        //			 }
-        //			 else if(flag==1){
-        //			 	
-        //			 }
-        //			 }
-        //			 else if(flag==1){
-        //			 }
-        //            
-        //         }
-        //            
-        //             else if(flag==1){
-        //                
-        //             }
-        //             
-        //             if(flag == 0){
-        //             	break;
-        //			 }
-        //			 else if(flag==1){
-        //			 	 cout<<"Username already taken"<<endl;
-        //                 cout<<"Enter new username: ";
-        //                 cin>>nme;
-        //                 username = nme;
-        //			 }
-        //         }
-        //
-        // 
 
         flag = 1;
         cout << "Which type of account do you want to open?" << endl << endl
@@ -782,19 +723,28 @@ public:
         return 1;
     }
 
-    void check_contact() {
-        investmentaccounts[Investment::invaccounts].setinvdetails("Alyan", "22k4582", "alyan@gmail.com", "03146399331", 10000, 2014);
-        loanaccounts[Loansystems::numofloanaccount].setloandetails("Ali", "22k4417", "ali@gmail.com", "03121234865", 2010, 500000, 5000);
-        savaccounts[Saving::numofsavingaccount].setsavdetails("Abdullah", "22k4147", "abdullah@gmail.com", "03246843025", 30000);
-        currentaccounts[Current::numofcurrentaccount].setcurrdetails("Urooj", "1234", "Urooj@gmail.com", "03685396053", 25000);
+    void WriteIntoFile(ofstream* file) {
+        int account[4] = { Investment::invaccounts,Loansystems::numofloanaccount,Saving::numofsavingaccount,Current::numofcurrentaccount };
+        file->write((char*)&account, sizeof(account));
+        file->write((char*)investmentaccounts, sizeof(Investment) * Investment::invaccounts);
+        file->write((char*)loanaccounts, sizeof(Loansystems) * Loansystems::numofloanaccount);
+        file->write((char*)savaccounts, sizeof(Saving) * Saving::numofsavingaccount);
+        file->write((char*)currentaccounts, sizeof(Current) * Current::numofcurrentaccount);
     }
 
-    void print() {
-        cout << "Hello";
-               cout << Investment::invaccounts << endl;
-//               cout << investmentaccounts[0].getusername() << endl;
-//               cout << investmentaccounts[0].getpassword() << endl;
+    void ReadFromFile(ifstream* file) {
+        int account[4] = { 0,0,0,0 };
+        file->read((char*)&account, sizeof(account));
+        Investment::invaccounts = account[0];
+        Loansystems::numofloanaccount = account[1];
+        Saving::numofsavingaccount = account[2];
+        Current::numofcurrentaccount = account[3];
+        file->read((char*)investmentaccounts, sizeof(Investment) * Investment::invaccounts);
+        file->read((char*)loanaccounts, sizeof(Loansystems) * Loansystems::numofloanaccount);
+        file->read((char*)savaccounts, sizeof(Saving) * Saving::numofsavingaccount);
+        file->read((char*)currentaccounts, sizeof(Current) * Current::numofcurrentaccount);
     }
+
     ~Bank() {
         delete[] investmentaccounts;
         delete[] loanaccounts;
@@ -814,12 +764,9 @@ int main() {
         cout << "Error: Cannot open file to read" << endl;
         return 1;
     }
+    output.seekg(0);
     // Read the bank data from file (if it exists)
-        output.read((char*)(&abcbank), sizeof(abcbank));
-        if (output) {
-            cout << "Readed succesfully";
-        }
-//        abcbank.check_contact();
+    abcbank.ReadFromFile(&output);
     // User menu
     while (1) {
         cout << "*****************  WELCOME TO THE BANK APP  *****************" << endl;
@@ -864,14 +811,14 @@ int main() {
         }
     }
     output.close();
-    input.open("BankManagementSystem.txt", ios::app | ios::binary);
+    input.open("BankManagementSystem.txt", ios::out | ios::binary | ios::trunc);
     if (!input.is_open()) {
         cout << "Error Cannon open file to write" << endl;
         return 1;
     }
-    // Write the updated bank data to file
     input.seekp(0);
-    input.write(reinterpret_cast<const char*>(&abcbank), sizeof(abcbank));
+    // Write the updated bank data to file
+    abcbank.WriteIntoFile(&input);
     if (!input) {
         cout << "Error: Failed to write to file" << endl;
         return 1;
